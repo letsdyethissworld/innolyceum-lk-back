@@ -381,7 +381,7 @@ def update_profile(profile: ProfileIn, current_user: UserDB = Depends(get_curren
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-    @app.post("/requests/submit")
+@app.post("/requests/submit")
 def submit_request(
     achievements: List[UploadFile] = File([]),  # Измените на пустой список по умолчанию
     motivation_letter: UploadFile = File(...),
