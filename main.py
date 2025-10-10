@@ -383,7 +383,7 @@ def update_profile(profile: ProfileIn, current_user: UserDB = Depends(get_curren
 
 @app.post("/requests/submit")
 def submit_request(
-    achievements: List[UploadFile] = File([]),  # Измените на пустой список по умолчанию
+    achievements: List[UploadFile] = File([]),
     motivation_letter: UploadFile = File(...),
     grades_file: UploadFile = File(...),
     state_exam_file: Optional[UploadFile] = File(None),
@@ -391,11 +391,17 @@ def submit_request(
     current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    print(f"=== SUBMIT REQUEST CALLED ===")
+    print(f"=== SUBMIT REQUEST STARTED ===")
     print(f"User: {current_user.email}")
-    print(f"Achievements files: {[f.filename for f in achievements]}")
-    print(f"Motivation letter: {motivation_letter.filename if motivation_letter else 'None'}")
-    print(f"Grades file: {grades_file.filename if grades_file else 'None'}")
+    print(f"User class: {current_user.profile.class_number if current_user.profile else 'No profile'}")
+    
+    # Логируем информацию о файлах
+    print(f"Achievements count: {len(achievements)}")
+    for i, achievement in enumerate(achievements):
+        print(f"Achievement {i}: {achievement.filename}")
+    
+    print(f"Motivation letter: {motivation_letter.filename}")
+    print(f"Grades file: {grades_file.filename}")
     print(f"State exam file: {state_exam_file.filename if state_exam_file else 'None'}")
     print(f"Official grades file: {official_grades_file.filename if official_grades_file else 'None'}")
     
