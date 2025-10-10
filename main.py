@@ -37,7 +37,7 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=True
 )
 
-
+BOT_WEBHOOK_URL = "http://localhost:8001/bot/notify/status-update"
 
 STORAGE_DIR = os.path.abspath("./storage")
 os.makedirs(STORAGE_DIR, exist_ok=True)
