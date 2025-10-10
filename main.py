@@ -37,13 +37,7 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=True
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://innolk.up.railway.app"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 
 STORAGE_DIR = os.path.abspath("./storage")
 os.makedirs(STORAGE_DIR, exist_ok=True)
@@ -62,6 +56,13 @@ MAX_FILE_SIZE = 10 * 1024 * 1024
 
 app = FastAPI(title="Enrollment Office API")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://innolk.up.railway.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class UserDB(Base):
     __tablename__ = "users"
