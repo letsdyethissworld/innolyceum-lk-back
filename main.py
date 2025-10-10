@@ -175,6 +175,9 @@ class RequestStatusUpdate(BaseModel):
             raise ValueError(f"status must be one of {allowed}")
         return v
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 def get_db():
     db = SessionLocal()
@@ -218,9 +221,6 @@ async def send_email_async(subject: str, recipient: str, body: str):
         print(f"✅ Email sent to {recipient}")
     except Exception as e:
         print(f"❌ Failed to send email: {e}")
-
-
-
 
 def validate_file_upload(file: UploadFile):
     filename = file.filename
@@ -268,6 +268,22 @@ def get_admin_user(current_user: UserDB = Depends(get_current_user)) -> UserDB:
             status_code=403, detail="Admin privileges required")
     return current_user
 
+
+@app.post("/token-json", response_model=Token)
+def login_for_access_token_json(
+    credentials: LoginRequest,
+    db: Session = Depends(get_db)
+):
+    user = db.query(UserDB).filter(UserDB.email == credentials.email).first()
+
+    if not user or not verify_password(credentials.password, user.hashed_password):
+        raise HTTPException(
+            status_code=400,
+            detail="Incorrect email or password"
+        )
+
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 @app.post("/register", status_code=201)
 def register(data: RegisterSchema, db: Session = Depends(get_db)):
