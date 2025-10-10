@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
 import uvicorn
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from pydantic import BaseModel, EmailStr, constr, conint, validator
@@ -56,13 +55,6 @@ MAX_FILE_SIZE = 10 * 1024 * 1024
 
 app = FastAPI(title="Enrollment Office API")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://innolk.up.railway.app/"],  # React dev server
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 class UserDB(Base):
     __tablename__ = "users"
