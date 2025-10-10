@@ -619,23 +619,34 @@ def admin_get_request(request_id: int, db: Session = Depends(get_db), admin: Use
     return response_data
 
 @app.post("/admin/request/{request_id}/status")
-def admin_update_status(request_id: int, update: RequestStatusUpdate, db: Session = Depends(get_db), admin: UserDB = Depends(get_admin_user)):
-    r = db.query(EnrollmentRequest).filter(
-        EnrollmentRequest.id == request_id).first()
+def admin_update_status(
+    request_id: int,
+    update: RequestStatusUpdate,
+    db: Session = Depends(get_db),
+    admin: UserDB = Depends(get_admin_user),
+    background_tasks: BackgroundTasks = None
+):
+    r = db.query(EnrollmentRequest).filter(EnrollmentRequest.id == request_id).first()
     if not r:
         raise HTTPException(status_code=404, detail="Request not found")
+
     old_status = r.status
     r.status = update.status
     r.admin_note = update.admin_note
     r.updated_at = datetime.utcnow()
     db.add(r)
     db.commit()
+
     user = db.query(UserDB).filter(UserDB.id == r.user_id).first()
     if user:
         subject = f"Your enrollment request #{r.id} status: {r.status}"
         body = f"Hello, your request status changed to {r.status}.\nAdmin note: {r.admin_note or ''}"
-        BackgroundTasks().add_task(lambda: send_email_async(subject, user.email, body))
-        BackgroundTasks().add_task(notify_telegram_bot, user.id, r.id, old_status, r.status, r.admin_note)
+
+        background_tasks.add_task(send_email_async, subject, user.email, body)
+        background_tasks.add_task(
+            notify_telegram_bot, user.id, r.id, old_status, r.status, r.admin_note
+        )
+
     return {"msg": "Status updated"}
 
 
