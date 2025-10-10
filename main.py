@@ -516,26 +516,59 @@ def admin_login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
 
 @app.get("/admin/requests")
 def admin_list_requests(status: Optional[str] = None, state: Optional[str] = None, db: Session = Depends(get_db), admin: UserDB = Depends(get_admin_user)):
-    q = db.query(EnrollmentRequest)
+    # Используем joinedload для загрузки связанных данных
+    from sqlalchemy.orm import joinedload
+    
+    q = db.query(EnrollmentRequest).options(
+        joinedload(EnrollmentRequest.user).joinedload(UserDB.profile)
+    )
+    
     if status:
         q = q.filter(EnrollmentRequest.status == status)
     if state:
         q = q.join(UserDB).join(Profile).filter(Profile.state == state)
+    
     results = q.order_by(EnrollmentRequest.created_at.desc()).all()
     out = []
     for r in results:
-        out.append({"id": r.id, "user_id": r.user_id,
-                   "status": r.status, "created_at": r.created_at})
+        user_data = {
+            "id": r.id,
+            "user_id": r.user_id,
+            "status": r.status,
+            "created_at": r.created_at
+        }
+        
+        # Добавляем данные пользователя, если они есть
+        if r.user and r.user.profile:
+            user_data.update({
+                "user_email": r.user.email,
+                "profile": {
+                    "first_name": r.user.profile.first_name,
+                    "last_name": r.user.profile.last_name,
+                    "state": r.user.profile.state,
+                    "city": r.user.profile.city,
+                    "school": r.user.profile.school,
+                    "class_number": r.user.profile.class_number,
+                    "contact_number": r.user.profile.contact_number
+                }
+            })
+        
+        out.append(user_data)
+    
     return out
-
 
 @app.get("/admin/request/{request_id}")
 def admin_get_request(request_id: int, db: Session = Depends(get_db), admin: UserDB = Depends(get_admin_user)):
-    r = db.query(EnrollmentRequest).filter(
-        EnrollmentRequest.id == request_id).first()
+    from sqlalchemy.orm import joinedload
+    
+    r = db.query(EnrollmentRequest).options(
+        joinedload(EnrollmentRequest.user).joinedload(UserDB.profile)
+    ).filter(EnrollmentRequest.id == request_id).first()
+    
     if not r:
         raise HTTPException(status_code=404, detail="Request not found")
-    return {
+    
+    response_data = {
         "id": r.id,
         "user_id": r.user_id,
         "status": r.status,
@@ -546,7 +579,24 @@ def admin_get_request(request_id: int, db: Session = Depends(get_db), admin: Use
         "official_grades_document": r.official_grades_document,
         "admin_note": r.admin_note
     }
-
+    
+    # Добавляем данные пользователя, если они есть
+    if r.user:
+        response_data["user"] = {
+            "email": r.user.email
+        }
+        if r.user.profile:
+            response_data["user"]["profile"] = {
+                "first_name": r.user.profile.first_name,
+                "last_name": r.user.profile.last_name,
+                "state": r.user.profile.state,
+                "city": r.user.profile.city,
+                "school": r.user.profile.school,
+                "class_number": r.user.profile.class_number,
+                "contact_number": r.user.profile.contact_number
+            }
+    
+    return response_data
 
 @app.post("/admin/request/{request_id}/status")
 def admin_update_status(request_id: int, update: RequestStatusUpdate, db: Session = Depends(get_db), admin: UserDB = Depends(get_admin_user)):
