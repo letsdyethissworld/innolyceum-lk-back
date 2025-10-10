@@ -633,7 +633,7 @@ def admin_update_status(request_id: int, update: RequestStatusUpdate, db: Sessio
     if user:
         subject = f"Your enrollment request #{r.id} status: {r.status}"
         body = f"Hello, your request status changed to {r.status}.\nAdmin note: {r.admin_note or ''}"
-        asyncio.create_task(send_email_async(subject, user.email, body))
+        BackgroundTasks().add_task(lambda: send_email_async(subject, user.email, body))
         BackgroundTasks().add_task(notify_telegram_bot, user.id, r.id, old_status, r.status, r.admin_note)
     return {"msg": "Status updated"}
 
