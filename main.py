@@ -381,10 +381,9 @@ def update_profile(profile: ProfileIn, current_user: UserDB = Depends(get_curren
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-
-@app.post("/requests/submit")
+    @app.post("/requests/submit")
 def submit_request(
-    achievements: List[UploadFile] = File(...),
+    achievements: List[UploadFile] = File([]),  # Измените на пустой список по умолчанию
     motivation_letter: UploadFile = File(...),
     grades_file: UploadFile = File(...),
     state_exam_file: Optional[UploadFile] = File(None),
@@ -392,6 +391,14 @@ def submit_request(
     current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    print(f"=== SUBMIT REQUEST CALLED ===")
+    print(f"User: {current_user.email}")
+    print(f"Achievements files: {[f.filename for f in achievements]}")
+    print(f"Motivation letter: {motivation_letter.filename if motivation_letter else 'None'}")
+    print(f"Grades file: {grades_file.filename if grades_file else 'None'}")
+    print(f"State exam file: {state_exam_file.filename if state_exam_file else 'None'}")
+    print(f"Official grades file: {official_grades_file.filename if official_grades_file else 'None'}")
+    
     if not current_user.profile:
         raise HTTPException(
             status_code=400, detail="Complete your profile first")
