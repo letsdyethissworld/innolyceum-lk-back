@@ -20,7 +20,7 @@ import asyncio
 import openpyxl
 import smtplib
 from email.message import EmailMessage
-from fastapi_mail import ConnectionConfig, MessageSchema, FastMail]
+from fastapi_mail import ConnectionConfig, MessageSchema, FastMail
 
 SECRET_KEY = os.getenv("SECRET_KEY", "CHANGE_ME_TO_SECRET")
 ALGORITHM = "HS256"
