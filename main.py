@@ -179,6 +179,25 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+async def notify_telegram_bot(user_id: int, request_id: int, old_status: str, new_status: str, admin_note: str = None):
+    """Send notification to Telegram bot about status change"""
+    try:
+        async with httpx.AsyncClient() as client:
+            payload = {
+                "user_id": user_id,
+                "request_id": request_id,
+                "old_status": old_status,
+                "new_status": new_status,
+                "admin_note": admin_note
+            }
+            response = await client.post(BOT_WEBHOOK_URL, json=payload, timeout=10.0)
+            if response.status_code == 200:
+                logger.info(f"Telegram notification sent for user {user_id}")
+            else:
+                logger.warning(f"Failed to send Telegram notification: {response.text}")
+    except Exception as e:
+        logger.error(f"Error sending Telegram notification: {e}")
+
 def get_db():
     db = SessionLocal()
     try:
