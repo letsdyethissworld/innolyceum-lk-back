@@ -376,8 +376,7 @@ def submit_request(
         size = file.file.tell()
         file.file.seek(0)
         if size > MAX_FILE_SIZE:
-            raise HTTPException(status_code=400, detail=f"File {
-                                file.filename} exceeds 10MB")
+            raise HTTPException(status_code=400, detail=f"File {file.filename} exceeds 10MB")
         path = save_upload_file(
             file, os.path.join(STORAGE_DIR, 'achievements'))
         saved_achievements.append(path)
@@ -390,8 +389,7 @@ def submit_request(
         raise HTTPException(
             status_code=400, detail="Motivation letter exceeds 10MB")
     fn_ext = motivation_letter.filename.rsplit('.', 1)[-1]
-    safe_name = f"{current_user.profile.first_name}_{
-        current_user.profile.last_name}_Motivation_letter.{fn_ext}"
+    safe_name = f"{current_user.profile.first_name}_{current_user.profile.last_name}_Motivation_letter.{fn_ext}"
     ml_path = save_upload_file(motivation_letter, os.path.join(
         STORAGE_DIR, 'motivation_letters'), safe_name)
 
@@ -517,8 +515,7 @@ def admin_update_status(request_id: int, update: RequestStatusUpdate, db: Sessio
     user = db.query(UserDB).filter(UserDB.id == r.user_id).first()
     if user:
         subject = f"Your enrollment request #{r.id} status: {r.status}"
-        body = f"Hello, your request status changed to {
-            r.status}.\nAdmin note: {r.admin_note or ''}"
+        body = f"Hello, your request status changed to {r.status}.\nAdmin note: {r.admin_note or ''}"
         BackgroundTasks().add_task(lambda: send_email_async(subject, user.email, body))
     return {"msg": "Status updated"}
 
