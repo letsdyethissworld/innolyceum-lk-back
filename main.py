@@ -20,7 +20,7 @@ import asyncio
 import openpyxl
 import smtplib
 from email.message import EmailMessage
-from fastapi_mail import ConnectionConfig, MessageSchema, FastMail
+from fastapi_mail import ConnectionConfig, MessageSchema, FastMail]
 
 SECRET_KEY = os.getenv("SECRET_KEY", "CHANGE_ME_TO_SECRET")
 ALGORITHM = "HS256"
@@ -343,25 +343,43 @@ def password_reset_confirm(token: str = Form(...), new_password: str = Form(...)
 
 @app.put("/profile", status_code=200)
 def update_profile(profile: ProfileIn, current_user: UserDB = Depends(get_current_user), db: Session = Depends(get_db)):
-    p = db.query(Profile).filter(Profile.user_id == current_user.id).first()
-    if not p:
-        p = Profile(user_id=current_user.id)
-    p.first_name = profile.first_name
-    p.middle_name = profile.middle_name
-    p.last_name = profile.last_name
-    p.date_of_birth = profile.date_of_birth
-    p.state = profile.state
-    p.city = profile.city
-    p.school = profile.school
-    p.class_number = profile.class_number
-    p.contact_number = profile.contact_number
-    p.address = profile.address
-    import json
-    p.parents = json.dumps([par.dict() for par in profile.parents])
-    db.add(p)
-    db.commit()
-    db.refresh(p)
-    return {"msg": "Profile updated"}
+    try:
+        print(f"Updating profile for user {current_user.id}")
+        print(f"Received data: {profile.dict()}")
+        
+        p = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+        if not p:
+            p = Profile(user_id=current_user.id)
+            print("Creating new profile")
+        else:
+            print("Updating existing profile")
+            
+        p.first_name = profile.first_name
+        p.middle_name = profile.middle_name
+        p.last_name = profile.last_name
+        p.date_of_birth = profile.date_of_birth
+        p.state = profile.state
+        p.city = profile.city
+        p.school = profile.school
+        p.class_number = profile.class_number
+        p.contact_number = profile.contact_number
+        p.address = profile.address
+        
+        import json
+        parents_json = json.dumps([par.dict() for par in profile.parents])
+        p.parents = parents_json
+        
+        db.add(p)
+        db.commit()
+        db.refresh(p)
+        
+        print("Profile updated successfully")
+        return {"msg": "Profile updated"}
+        
+    except Exception as e:
+        print(f"Error updating profile: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @app.post("/requests/submit")
@@ -623,8 +641,22 @@ def admin_get_file(path: str, db: Session = Depends(get_db), admin: UserDB = Dep
 @app.get("/profile")
 def get_profile(current_user: UserDB = Depends(get_current_user), db: Session = Depends(get_db)):
     profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+    
+    # Если профиль не найден, возвращаем пустой объект вместо ошибки 404
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        return {
+            "first_name": "",
+            "middle_name": "",
+            "last_name": "",
+            "date_of_birth": "",
+            "state": "",
+            "city": "",
+            "school": "",
+            "class_number": 6,  # значение по умолчанию
+            "contact_number": "",
+            "address": "",
+            "parents": []
+        }
     
     import json
     return {
