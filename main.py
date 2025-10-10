@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
@@ -36,7 +37,13 @@ conf = ConnectionConfig(
     VALIDATE_CERTS=True
 )
 
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://innolk.up.railway.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 STORAGE_DIR = os.path.abspath("./storage")
 os.makedirs(STORAGE_DIR, exist_ok=True)
