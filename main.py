@@ -300,8 +300,10 @@ async def password_reset_request(email: EmailStr, background_tasks: BackgroundTa
     token = create_access_token(
         {"sub": str(user.id)}, expires_delta=timedelta(hours=2))
     link = f"http://localhost:5173/reset-password?token={token}"
-    body = f"To reset your password visit: {
-        link}\nThis link expires in 2 hours."
+    body = (
+        f"To reset your password visit: {link}\n"
+        f"This link expires in 2 hours."
+    )
     asyncio.create_task(send_email_async(
         "Password reset", user.email, body))
     return {"msg": "If an account with that email exists, a reset link will be sent."}
