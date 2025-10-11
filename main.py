@@ -538,8 +538,13 @@ def admin_login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/admin/requests")
-def admin_list_requests(status: Optional[str] = None, state: Optional[str] = None, db: Session = Depends(get_db), admin: UserDB = Depends(get_admin_user)):
-    # Используем joinedload для загрузки связанных данных
+def admin_list_requests(
+    status: Optional[str] = None, 
+    state: Optional[str] = None,
+    class_number: Optional[int] = None,  # Добавляем фильтр по классу
+    db: Session = Depends(get_db), 
+    admin: UserDB = Depends(get_admin_user)
+):
     from sqlalchemy.orm import joinedload
     
     q = db.query(EnrollmentRequest).options(
@@ -550,6 +555,8 @@ def admin_list_requests(status: Optional[str] = None, state: Optional[str] = Non
         q = q.filter(EnrollmentRequest.status == status)
     if state:
         q = q.join(UserDB).join(Profile).filter(Profile.state == state)
+    if class_number:  # Добавляем фильтр по классу
+        q = q.join(UserDB).join(Profile).filter(Profile.class_number == class_number)
     
     results = q.order_by(EnrollmentRequest.created_at.desc()).all()
     out = []
@@ -561,7 +568,6 @@ def admin_list_requests(status: Optional[str] = None, state: Optional[str] = Non
             "created_at": r.created_at
         }
         
-        # Добавляем данные пользователя, если они есть
         if r.user and r.user.profile:
             user_data.update({
                 "user_email": r.user.email,
