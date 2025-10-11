@@ -19,9 +19,12 @@ import zipfile
 import asyncio
 import openpyxl
 import smtplib
+import logging
+import httpx
 from email.message import EmailMessage
 from fastapi_mail import ConnectionConfig, MessageSchema, FastMail
 
+logger = logging.getLogger(__name__)
 SECRET_KEY = os.getenv("SECRET_KEY", "CHANGE_ME_TO_SECRET")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
