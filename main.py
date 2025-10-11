@@ -344,7 +344,7 @@ async def password_reset_request(email: EmailStr, background_tasks: BackgroundTa
     )
     asyncio.create_task(send_email_async(
         "Password reset", user.email, body))
-    return {"msg": {link}}
+    return {"msg": link}
 
 
 @app.post("/password-reset/confirm")
