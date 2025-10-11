@@ -31,7 +31,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 conf = ConnectionConfig(
     MAIL_USERNAME=os.getenv("MAIL_USERNAME", "innolyceum.lk@gmail.com"),
     MAIL_PASSWORD=os.getenv("MAIL_PASSWORD", "oxtp isvq sfis anig"),
-    MAIL_FROM=os.getenv("MAIL_FROM", "i.d.chegodaev@gmail.com"),
+    MAIL_FROM=os.getenv("MAIL_FROM", "innolyceum.lk@gmail.com"),
     MAIL_PORT=int(os.getenv("MAIL_PORT", 587)),
     MAIL_SERVER=os.getenv("MAIL_SERVER", "smtp.gmail.com"),
     MAIL_STARTTLS=os.getenv("MAIL_STARTTLS", "True").lower() == "true",
