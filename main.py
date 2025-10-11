@@ -633,6 +633,45 @@ def admin_list_requests(
         out.append(user_data)
     
     return out
+
+@app.get("/admin/request/{request_id}")
+def admin_get_request(request_id: int, db: Session = Depends(get_db), admin: UserDB = Depends(get_admin_user)):
+    from sqlalchemy.orm import joinedload
+    r = db.query(EnrollmentRequest).options(
+        joinedload(EnrollmentRequest.user).joinedload(UserDB.profile)
+    ).filter(EnrollmentRequest.id == request_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Request not found")
+    response_data = {
+        "id": r.id,
+        "user_id": r.user_id,
+        "status": r.status,
+        "achievements": r.achievements.split('|') if r.achievements else [],
+        "motivation_letter": r.motivation_letter,
+        "grades": r.grades,
+        "state_exam": r.state_exam,
+        "official_grades_document": r.official_grades_document,
+        "admin_note": r.admin_note
+    }
+
+    # Добавляем данные пользователя, если они есть
+    if r.user:
+        response_data["user"] = {
+            "email": r.user.email
+        }
+        if r.user.profile:
+            response_data["user"]["profile"] = {
+                "first_name": r.user.profile.first_name,
+                "last_name": r.user.profile.last_name,
+                "state": r.user.profile.state,
+                "city": r.user.profile.city,
+                "school": r.user.profile.school,
+                "class_number": r.user.profile.class_number,
+                "contact_number": r.user.profile.contact_number
+            }
+
+    return response_data
+
 @app.post("/admin/request/{request_id}/status")
 def admin_update_status(
     request_id: int,
