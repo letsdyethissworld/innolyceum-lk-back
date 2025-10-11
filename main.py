@@ -654,10 +654,6 @@ def admin_update_status(
 
     user = db.query(UserDB).filter(UserDB.id == r.user_id).first()
     if user:
-        subject = f"Your enrollment request #{r.id} status: {r.status}"
-        body = f"Hello, your request status changed to {r.status}.\nAdmin note: {r.admin_note or ''}"
-
-        background_tasks.add_task(send_email_async, subject, user.email, body)
         background_tasks.add_task(
             notify_telegram_bot, user.id, r.id, old_status, r.status, r.admin_note
         )
