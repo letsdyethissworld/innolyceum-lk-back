@@ -183,7 +183,6 @@ class LoginRequest(BaseModel):
     password: str
 
 async def notify_telegram_bot(user_id: int, request_id: int, old_status: str, new_status: str, admin_note: str = None):
-    print("Notifying TGBOT")
     """Send notification to Telegram bot about status change"""
     try:
         async with httpx.AsyncClient() as client:
